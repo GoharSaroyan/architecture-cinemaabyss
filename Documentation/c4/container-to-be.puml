@@ -1,0 +1,113 @@
+@startuml container-to-be
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title CinemaAbyss - Container Diagram (To-Be)
+
+LAYOUT_TOP_DOWN()
+
+Person(viewer, "Viewer", "Subscriber on mobile, laptop or Smart TV")
+
+System_Ext(contentProviders, "Content Providers", "Other streaming services and open sources")
+System_Ext(recommendations, "Recommendation System", "Third-party personalized selections")
+System_Ext(paymentSystems, "Payment Systems", "External payment gateways")
+System_Ext(loyalty, "Loyalty Services", "Partner loyalty programs")
+System_Ext(marketplaces, "Marketplaces", "Partner marketplaces")
+
+System_Boundary(cinemaabyss, "CinemaAbyss (Kubernetes)") {
+
+  Boundary(clients, "Clients", "Web / Mobile / Smart TV") {
+    Container(webApp, "Web App", "SPA", "UI for laptops and desktops")
+    Container(mobileApp, "Mobile App", "iOS / Android", "UI for mobile devices")
+    Container(tvApp, "Smart TV App", "TV app", "UI for Smart TV")
+  }
+
+  Boundary(entryPoint, "Single Entry Point", "Infrastructure") {
+    Container(apiGateway, "API Gateway (Proxy)", "C# / ASP.NET Core", "Single entry point for all clients. Routes requests to services, validates tokens, gradually switches traffic from the monolith with a feature flag (Strangler Fig)")
+  }
+
+  Boundary(legacy, "Legacy (transitional)", "Strangler Fig") {
+    Container(monolith, "Monolith (legacy)", "C# / ASP.NET Core", "Transitional: serves domains that are not extracted yet")
+    ContainerDb(monolithDb, "Monolith DB", "PostgreSQL", "Shared legacy database")
+  }
+
+  Boundary(usersDomain, "Users / Auth", "Generic domain") {
+    Container(authService, "Users / Auth Service", "C# / ASP.NET Core", "Registration, authentication, user profile")
+    ContainerDb(authDb, "Users DB", "PostgreSQL", "Users, credentials")
+  }
+
+  Boundary(moviesDomain, "Movies (Catalog)", "Core domain") {
+    Container(moviesService, "Movies Service", "C# / ASP.NET Core", "Movie catalog: movies, genres, actors, average rating")
+    ContainerDb(moviesDb, "Movies DB", "PostgreSQL", "Movie metadata")
+  }
+
+  Boundary(contentDomain, "Content / Streaming", "Core domain") {
+    Container(contentService, "Content / Streaming Service", "C# / ASP.NET Core", "Video and playback links, content import from providers")
+    ContainerDb(contentDb, "Content DB", "PostgreSQL", "Video sources, playback links")
+  }
+
+  Boundary(engagementDomain, "Engagement", "Supporting domain") {
+    Container(engagementService, "Engagement Service", "C# / ASP.NET Core", "User ratings and favorites")
+    ContainerDb(engagementDb, "Engagement DB", "PostgreSQL", "Ratings, favorites")
+  }
+
+  Boundary(subscriptionsDomain, "Subscriptions", "Supporting domain") {
+    Container(subscriptionsService, "Subscriptions Service", "C# / ASP.NET Core", "Plans, subscriptions, discounts")
+    ContainerDb(subscriptionsDb, "Subscriptions DB", "PostgreSQL", "Subscriptions, plans, discounts")
+  }
+
+  Boundary(paymentsDomain, "Payments", "Generic domain") {
+    Container(paymentsService, "Payments Service", "C# / ASP.NET Core", "Payments and integration with payment systems")
+    ContainerDb(paymentsDb, "Payments DB", "PostgreSQL", "Payment transactions")
+  }
+
+  Boundary(eventsDomain, "Events", "Infrastructure") {
+    Container(eventsService, "Events Service", "C# / ASP.NET Core", "Produces and consumes domain events, forwards user activity to the recommendation system")
+    ContainerQueue(kafka, "Message Broker", "Apache Kafka", "Topics: user, movie, payment events")
+  }
+}
+
+' Clients
+Rel(viewer, webApp, "Uses", "HTTPS")
+Rel(viewer, mobileApp, "Uses", "HTTPS")
+Rel(viewer, tvApp, "Uses", "HTTPS")
+Rel(webApp, apiGateway, "API calls", "HTTPS/REST, JSON")
+Rel(mobileApp, apiGateway, "API calls", "HTTPS/REST, JSON")
+Rel(tvApp, apiGateway, "API calls", "HTTPS/REST, JSON")
+
+' Single entry point
+Rel(apiGateway, monolith, "Routes not yet migrated requests", "HTTP/REST")
+Rel(apiGateway, authService, "Routes auth requests, validates tokens", "HTTP/REST")
+Rel(apiGateway, moviesService, "Routes catalog requests", "HTTP/REST")
+Rel(apiGateway, contentService, "Routes playback requests", "HTTP/REST")
+Rel(apiGateway, engagementService, "Routes ratings / favorites requests", "HTTP/REST")
+Rel(apiGateway, subscriptionsService, "Routes subscription requests", "HTTP/REST")
+Rel(apiGateway, paymentsService, "Routes payment requests", "HTTP/REST")
+
+' Database per service
+Rel(monolith, monolithDb, "Reads / writes", "SQL")
+Rel(authService, authDb, "Reads / writes", "SQL")
+Rel(moviesService, moviesDb, "Reads / writes", "SQL")
+Rel(contentService, contentDb, "Reads / writes", "SQL")
+Rel(engagementService, engagementDb, "Reads / writes", "SQL")
+Rel(subscriptionsService, subscriptionsDb, "Reads / writes", "SQL")
+Rel(paymentsService, paymentsDb, "Reads / writes", "SQL")
+
+' Async integration
+Rel(authService, kafka, "Publishes user events", "Kafka")
+Rel(engagementService, kafka, "Publishes movie rated / favorite events", "Kafka")
+Rel(paymentsService, kafka, "Publishes payment events", "Kafka")
+Rel(kafka, moviesService, "Rating events: updates average rating", "Kafka")
+Rel(kafka, subscriptionsService, "Payment events: activates subscription", "Kafka")
+Rel(eventsService, kafka, "Produces / consumes events", "Kafka")
+
+' External systems
+Rel(contentService, contentProviders, "Gets content and playback sources", "HTTPS")
+Rel(moviesService, recommendations, "Requests personalized selections", "HTTPS/REST")
+Rel(eventsService, recommendations, "Forwards user activity", "HTTPS")
+Rel(paymentsService, paymentSystems, "Charges payments", "HTTPS/REST")
+Rel(subscriptionsService, loyalty, "Applies bonuses and discounts", "HTTPS/REST")
+Rel(marketplaces, apiGateway, "Activates subscriptions and promo codes", "HTTPS/REST")
+
+SHOW_LEGEND()
+
+@enduml
