@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monolith", "src\monolith\Mo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoviesService", "src\microservices\movies\MoviesService.csproj", "{A220ADE2-8E01-4E0C-B9BD-6D7E92863633}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProxyService", "src\microservices\proxy\ProxyService.csproj", "{B34579F7-437B-4B77-8384-EAB8A3F1CA90}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,18 @@ Global
 		{A220ADE2-8E01-4E0C-B9BD-6D7E92863633}.Release|x64.Build.0 = Release|Any CPU
 		{A220ADE2-8E01-4E0C-B9BD-6D7E92863633}.Release|x86.ActiveCfg = Release|Any CPU
 		{A220ADE2-8E01-4E0C-B9BD-6D7E92863633}.Release|x86.Build.0 = Release|Any CPU
+		{B34579F7-437B-4B77-8384-EAB8A3F1CA90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B34579F7-437B-4B77-8384-EAB8A3F1CA90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B34579F7-437B-4B77-8384-EAB8A3F1CA90}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B34579F7-437B-4B77-8384-EAB8A3F1CA90}.Debug|x64.Build.0 = Debug|Any CPU
+		{B34579F7-437B-4B77-8384-EAB8A3F1CA90}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B34579F7-437B-4B77-8384-EAB8A3F1CA90}.Debug|x86.Build.0 = Debug|Any CPU
+		{B34579F7-437B-4B77-8384-EAB8A3F1CA90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B34579F7-437B-4B77-8384-EAB8A3F1CA90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B34579F7-437B-4B77-8384-EAB8A3F1CA90}.Release|x64.ActiveCfg = Release|Any CPU
+		{B34579F7-437B-4B77-8384-EAB8A3F1CA90}.Release|x64.Build.0 = Release|Any CPU
+		{B34579F7-437B-4B77-8384-EAB8A3F1CA90}.Release|x86.ActiveCfg = Release|Any CPU
+		{B34579F7-437B-4B77-8384-EAB8A3F1CA90}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -53,5 +67,6 @@ Global
 		{729A333E-ABD6-BEB7-26CA-C39A7539F140} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{32F3274F-A595-4023-8AA6-88441491DCF1} = {729A333E-ABD6-BEB7-26CA-C39A7539F140}
 		{A220ADE2-8E01-4E0C-B9BD-6D7E92863633} = {729A333E-ABD6-BEB7-26CA-C39A7539F140}
+		{B34579F7-437B-4B77-8384-EAB8A3F1CA90} = {729A333E-ABD6-BEB7-26CA-C39A7539F140}
 	EndGlobalSection
 EndGlobal
