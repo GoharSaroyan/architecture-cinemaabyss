@@ -1,12 +1,16 @@
 using CinemaAbyss.ProxyService.Configuration;
 using CinemaAbyss.ProxyService.LoadBalancing;
+using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.LoadBalancing;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Routes, clusters and service addresses are defined in appsettings.json ("ReverseProxy" section).
+// Routes and clusters are defined in appsettings.json ("ReverseProxy" section).
+// Destination addresses are written there as {{ENV_VAR}} and resolved from the environment (docker-compose.yml).
 builder.Services.AddSingleton(MigrationSettings.FromEnvironment());
 builder.Services.AddSingleton<ILoadBalancingPolicy, MoviesMigrationPolicy>();
+
+builder.Services.AddSingleton<IProxyConfigFilter, EnvironmentAddressFilter>();
 
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));

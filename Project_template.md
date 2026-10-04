@@ -42,13 +42,14 @@
 ```
 
 - После реализации запустите postman тесты - они все должны быть зеленые (кроме events).
+Тесты постман >> ![alt text](answers/postman-tests-1.png) ![alt text](answers/postman-tests-2.png) ![alt text](answers/postman-tests-3.png)![alt text](answers/postman-tests-4.png) ![alt text](answers/postman-tests-summary.png)
 - Отправьте запросы к API Gateway:
    ```bash
    curl http://localhost:8000/api/movies
    ```
 - Протестируйте постепенный переход, изменив переменную окружения MOVIES_MIGRATION_PERCENT в файле docker-compose.yml.
-
-
+Прокси MIGRATION_PERCENT скрин.
+![alt text](answers/proxy-migration-percent.png)
 ### 2. Kafka
  Вам как архитектуру нужно также проверить гипотезу насколько просто реализовать применение Kafka в данной архитектуре.
 
@@ -60,6 +61,10 @@
 
 Необходимые тесты для проверки этого API вызываются при запуске npm run test:local из папки tests/postman 
 Приложите скриншот тестов и скриншот состояния топиков Kafka из UI http://localhost:8090 
+
+![Топики Kafka в UI](answers/kafka-ui-topics.png)
+
+![Лог events-service: Consumed event](answers/events-service-consumed-log.png)
 
 # Задание 3
 
