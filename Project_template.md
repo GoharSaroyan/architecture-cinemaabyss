@@ -5,7 +5,11 @@
 1. Спроектируйте to be архитектуру КиноБездны, разделив всю систему на отдельные домены и организовав интеграционное взаимодействие и единую точку вызова сервисов.
 Результат представьте в виде контейнерной диаграммы в нотации С4.
 Добавьте ссылку на файл в этот шаблон
-[ссылка на файл](ссылка)
+[Контейнерная диаграмма To-Be (C4)](Documentation/c4/container-to-be.puml)
+
+![Container To-Be](Documentation/c4/container-to-be.png)
+
+**Решение.** Система разделена на домены: Users/Auth, Movies, Content/Streaming, Engagement, Subscriptions, Payments и инфраструктурный Events. Клиенты (Web, Mobile, Smart TV) работают только через единую точку входа — API Gateway. У каждого домена своя база данных, сервисы общаются по REST и через события в Kafka. Монолит остаётся временно и обслуживает ещё не выделенные домены (паттерн Strangler Fig).
 
 # Задание 2
 
@@ -40,13 +44,16 @@
 ```
 
 - После реализации запустите postman тесты - они все должны быть зеленые (кроме events).
+Тесты постман >> ![alt text](answers/postman-tests-1.png) ![alt text](answers/postman-tests-2.png) ![alt text](answers/postman-tests-3.png)![alt text](answers/postman-tests-4.png) ![alt text](answers/postman-tests-summary.png)
 - Отправьте запросы к API Gateway:
    ```bash
    curl http://localhost:8000/api/movies
    ```
 - Протестируйте постепенный переход, изменив переменную окружения MOVIES_MIGRATION_PERCENT в файле docker-compose.yml.
+Прокси MIGRATION_PERCENT скрин.
+![alt text](answers/proxy-migration-percent.png)
 
-
+**Решение (Proxy).** Прокси реализован на C# (ASP.NET Core + YARP). Маршруты и кластеры описаны в `appsettings.json`, адреса сервисов берутся из переменных окружения (`MONOLITH_URL`, `MOVIES_SERVICE_URL`, `EVENTS_SERVICE_URL`). Для `/api/movies` при `GRADUAL_MIGRATION=true` доля `MOVIES_MIGRATION_PERCENT`% запросов уходит в movies-service, остальные в монолит; `/api/events` идёт в events-service, остальные `/api` — в монолит. На скриншоте при 50% видно распределение запросов между `movies` и `monolith` в логах прокси.
 ### 2. Kafka
  Вам как архитектуру нужно также проверить гипотезу насколько просто реализовать применение Kafka в данной архитектуре.
 
@@ -58,6 +65,12 @@
 
 Необходимые тесты для проверки этого API вызываются при запуске npm run test:local из папки tests/postman 
 Приложите скриншот тестов и скриншот состояния топиков Kafka из UI http://localhost:8090 
+
+![Топики Kafka в UI](answers/kafka-ui-topics.png)
+
+![Лог events-service: Consumed event](answers/events-service-consumed-log.png)
+
+**Решение (Kafka).** events-service (C#, Confluent.Kafka) принимает `POST /api/events/movie|user|payment`, публикует события в топики `movie-events`, `user-events`, `payment-events`, а фоновый consumer читает их и пишет в лог (`Consumed event ...`). Скриншоты: топики в Kafka UI и лог обработки событий.
 
 # Задание 3
 
@@ -108,6 +121,10 @@ jobs:
 ```
 Как только сборка отработает и в github registry появятся ваши образы, можно переходить к блоку настройки Kubernetes
 Успешным результатом данного шага является "зеленая" сборка и "зеленые" тесты
+
+![GitHub Actions: зелёные сборка и тесты](answers/github-actions-runs.png)
+
+![GitHub Packages: образы в реестре](answers/github-packages.png)
 
 
 ### Proxy в Kubernetes
@@ -275,6 +292,16 @@ cat .docker/config.json | base64
 #### Шаг 3
 Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и  скриншот вывода event-service после вызова тестов.
 
+![Вывод /api/movies через ingress](answers/k8s-api-movies.png)
+
+![Тесты в Kubernetes (1)](answers/k8s-tests-1.png)
+
+![Тесты в Kubernetes (2)](answers/k8s-tests-2.png)
+
+![Тесты в Kubernetes (итог)](answers/k8s-tests-summary.png)
+![Лог events-service в Kubernetes](answers/k8s-events-service-log.png)
+
+**Решение.** CI/CD: в `docker-build-push.yml` добавлены сборка и публикация образов `events-service` и `proxy-service` в ghcr.io, ветка `cinema` добавлена в триггеры workflow (`docker-build-push`, `api-tests`); сборка и тесты в GitHub зелёные, образы появились в Packages. Kubernetes: заполнены Deployment и Service для `events-service` и `proxy-service`, в `ingress.yaml` добавлено правило `/` → `proxy-service:8000`, в `configmap.yaml` добавлен `EVENTS_SERVICE_URL`. Тесты `test:kubernetes` проходят (22 запроса, 42 проверки, 0 ошибок). Вызов `/api/movies` на скриншоте сделан через `port-forward` на порт 8088, так как порт 80 на моём компьютере занят локальным IIS.
 
 # Задание 4
 Для простоты дальнейшего обновления и развертывания вам как архитектуру необходимо так же реализовать helm-чарты для прокси-сервиса и проверить работу 
@@ -345,11 +372,14 @@ kafka.common.InconsistentClusterIdException: The Cluster ID OkOjGPrdRimp8nkFohYk
 kubectl get pods -n cinemaabyss
 minikube tunnel
 ```
-
+![Развёртывание Helm: релиз и поды](answers/helm-pods.png)
 Потом вызовите 
 https://cinemaabyss.example.com/api/movies
 и приложите скриншот развертывания helm и вывода https://cinemaabyss.example.com/api/movies
+![Вывод /api/movies после установки Helm](answers/helm-api-movies.png)
+![Helm: поды и проброс порта ingress](answers/helm-port-forward.png)
 
+**Решение.** В `helm/values.yaml` указаны пути к образам (`ghcr.io/goharsaroyan/architecture-cinemaabyss/...`) и `imagePullSecrets`. В `templates/services` заполнены `proxy-service.yaml` и `events-service.yaml` (Deployment и Service, все параметры берутся из `values.yaml`). В `templates/configmap.yaml` исправлен адрес `movies-service` и добавлен `EVENTS_SERVICE_URL`. Проверка: `helm lint`, затем `helm install cinemaabyss .\src\kubernetes\helm --namespace cinemaabyss --create-namespace` — все 7 подов в статусе Running, `/api/movies` работает так же, как в Задании 3.
 ## Удаляем все
 
 ```bash

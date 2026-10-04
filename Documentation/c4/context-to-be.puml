@@ -1,0 +1,28 @@
+@startuml context-to-be
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title CinemaAbyss - System Context (To-Be)
+
+LAYOUT_TOP_DOWN()
+
+Person(viewer, "Viewer", "Subscriber who watches content on mobile devices, laptops and Smart TV")
+
+System(cinemaabyss, "CinemaAbyss", "Online cinema aggregator. Gives access to content from other services and open sources under a single subscription")
+
+System_Ext(contentProviders, "Content Providers", "Other streaming services and open sources that supply video content")
+System_Ext(recommendations, "Recommendation System", "Third-party system that builds personalized movie selections")
+System_Ext(paymentSystems, "Payment Systems", "External payment gateways")
+System_Ext(loyalty, "Loyalty Services", "Partner loyalty programs: bonuses and discounts")
+System_Ext(marketplaces, "Marketplaces", "Partner marketplaces that sell subscriptions and promo codes")
+
+Rel(viewer, cinemaabyss, "Signs in, browses catalog, watches, rates movies, manages favorites and subscription", "HTTPS/REST")
+Rel(cinemaabyss, contentProviders, "Gets video content and playback sources", "HTTPS")
+Rel(cinemaabyss, recommendations, "Sends user activity events", "Async")
+Rel(cinemaabyss, recommendations, "Requests personalized selections", "HTTPS/REST")
+Rel(cinemaabyss, paymentSystems, "Charges payments", "HTTPS/REST")
+Rel(cinemaabyss, loyalty, "Applies bonuses and discounts", "HTTPS/REST")
+Rel(marketplaces, cinemaabyss, "Activates subscriptions and promo codes", "HTTPS/REST")
+
+SHOW_LEGEND()
+
+@enduml
