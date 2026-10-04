@@ -116,6 +116,10 @@ jobs:
 Как только сборка отработает и в github registry появятся ваши образы, можно переходить к блоку настройки Kubernetes
 Успешным результатом данного шага является "зеленая" сборка и "зеленые" тесты
 
+![GitHub Actions: зелёные сборка и тесты](answers/github-actions-runs.png)
+
+![GitHub Packages: образы в реестре](answers/github-packages.png)
+
 
 ### Proxy в Kubernetes
 
@@ -282,6 +286,14 @@ cat .docker/config.json | base64
 #### Шаг 3
 Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и  скриншот вывода event-service после вызова тестов.
 
+![Вывод /api/movies через ingress](answers/k8s-api-movies.png)
+
+![Тесты в Kubernetes (1)](answers/k8s-tests-1.png)
+
+![Тесты в Kubernetes (2)](answers/k8s-tests-2.png)
+
+![Тесты в Kubernetes (итог)](answers/k8s-tests-summary.png)
+![Лог events-service в Kubernetes](answers/k8s-events-service-log.png)
 
 # Задание 4
 Для простоты дальнейшего обновления и развертывания вам как архитектуру необходимо так же реализовать helm-чарты для прокси-сервиса и проверить работу 
